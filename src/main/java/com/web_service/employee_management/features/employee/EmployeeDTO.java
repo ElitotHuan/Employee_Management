@@ -7,28 +7,28 @@ import java.time.LocalDate;
 @Data
 public class EmployeeDTO {
 
-	private Long id;
+    private Long id;
 
-	private String fullName;
+    private String fullName;
 
-	private LocalDate birthDay;
+    private LocalDate birthDay;
 
-	private int phoneNumber;
+    private int phoneNumber;
 
-	private LocalDate hiredDate;
+    private LocalDate hiredDate;
 
-	private String title;
+    private String title;
 
-	private double salary;
+    private double salary;
 
-	public EmployeeDTO(Long id, String fullName, LocalDate birthDay, int phoneNumber, LocalDate hiredDate, String title,
-			double salary) {
-		this.id = id;
-		this.fullName = fullName;
-		this.birthDay = birthDay;
-		this.phoneNumber = phoneNumber;
-		this.hiredDate = hiredDate;
-		this.title = title;
-		this.salary = salary;
-	}
+    public EmployeeDTO(Long id, String fullName, LocalDate birthDay, int phoneNumber, LocalDate hiredDate, String title,
+                       double salary) {
+        this.id = id;
+        this.fullName = fullName;
+        this.birthDay = birthDay;
+        this.phoneNumber = phoneNumber;
+        this.hiredDate = hiredDate;
+        this.title = title;
+        this.salary = salary;
+    }
 }

@@ -1,20 +1,10 @@
 package com.web_service.employee_management.features.authenticate;
 
-import java.util.Date;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-
 import com.web_service.employee_management.features.account.Account;
-
 import lombok.Data;
+
+import javax.persistence.*;
+import java.util.Date;
 
 @Table(name = "token_info")
 @Entity
@@ -42,12 +32,21 @@ public class TokenJWT {
 	@JoinColumn(name = "employee_id")
 	private Account account;
 
-	public TokenJWT(String accessToken, String refreshToken, Date createDate, Date expDate) {
-		super();
-		this.accessToken = accessToken;
-		this.refreshToken = refreshToken;
-		this.createDate = createDate;
-		this.expDate = expDate;
+
+	@Data
+	public static class RequestRefreshToken{
+		private String refreshToken;
+	}
+
+	@Data
+	public static class ResponseRefreshToken{
+		private String message;
+		private String refreshToken;
+
+		public ResponseRefreshToken(String message, String refreshToken) {
+			this.message = message;
+			this.refreshToken = refreshToken;
+		}
 	}
 
 	public TokenJWT() {

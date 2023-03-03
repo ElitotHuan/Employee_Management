@@ -1,6 +1,10 @@
 package com.web_service.employee_management.features.account;
 
 
+import com.web_service.employee_management.execptions.customexceptions.ExpiredException;
+import com.web_service.employee_management.security.userdetails.UserDetailsImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -8,19 +12,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.web_service.employee_management.security.UserDetailsImpl;
+import java.time.LocalDate;
 
 @Service
 public class AccountService {
+	private final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
 	@Autowired
-	AccountRepository passwordRepository;
+	AccountRepository accountRepository;
 
 	@Autowired
 	AuthenticationManager authenticationManager;
 
-	public Object getPasswords() {
-		return passwordRepository.getPasswords();
+	public Object getAccounts() {
+		return accountRepository.getAccounts();
 	}
 
 	public Account signin(Account.LoginRequest loginRequest) {
@@ -29,9 +34,13 @@ public class AccountService {
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+		Account account = accountRepository.findByEmail(userDetails.getUsername());
 
-		return passwordRepository.findByPassword(userDetails.getPassword());
-
+		if (!account.getExpDate().isBefore(LocalDate.now())) {
+			return account;
+		} else {
+			throw new ExpiredException("Account has been expired, please contact your admin");
+		}
 	}
 	
 }

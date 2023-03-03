@@ -1,17 +1,14 @@
-package com.web_service.employee_management.security;
+package com.web_service.employee_management.security.userdetails;
 
-import javax.transaction.Transactional;
-
+import com.web_service.employee_management.features.account.Account;
+import com.web_service.employee_management.features.account.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.web_service.employee_management.features.account.Account;
-import com.web_service.employee_management.features.account.AccountRepository;
-import com.web_service.employee_management.features.employee.Employee;
-import com.web_service.employee_management.features.employee.EmployeeRepository;
+import javax.transaction.Transactional;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -26,5 +23,4 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		Account user = repository.findByEmail(username);
 		return UserDetailsImpl.build(user);
 	}
-
 }

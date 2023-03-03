@@ -1,15 +1,13 @@
 package com.web_service.employee_management.features.account;
 
+import com.web_service.employee_management.features.authenticate.TokenJWT;
+import com.web_service.employee_management.features.employee.Employee;
+import com.web_service.employee_management.features.role.Role;
 import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
-
-import com.web_service.employee_management.features.authenticate.TokenJWT;
-import com.web_service.employee_management.features.employee.Employee;
-import com.web_service.employee_management.features.role.Role;
-
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -68,7 +66,6 @@ public class Account {
 			this.accessToken = accessToken;
 			this.refreshToken = refreshToken;
 		}
-
 	}
 
 	public Account(Employee employee, String email, String password, LocalDate expDate, LocalDate update_date) {
@@ -77,6 +74,14 @@ public class Account {
 		this.password = password;
 		this.expDate = expDate;
 		this.update_date = update_date;
+	}
+
+	public Account(String email, String password, LocalDate expDate, LocalDate update_date, Set<Role> roles) {
+		this.email = email;
+		this.password = password;
+		this.expDate = expDate;
+		this.update_date = update_date;
+		this.roles = roles;
 	}
 
 	public Account() {

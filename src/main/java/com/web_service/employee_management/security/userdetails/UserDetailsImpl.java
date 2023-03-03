@@ -1,15 +1,14 @@
-package com.web_service.employee_management.security;
+package com.web_service.employee_management.security.userdetails;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.web_service.employee_management.features.account.Account;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.web_service.employee_management.features.account.Account;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserDetailsImpl implements UserDetails {
 

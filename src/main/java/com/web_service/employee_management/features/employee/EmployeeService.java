@@ -1,5 +1,6 @@
 package com.web_service.employee_management.features.employee;
 
+import com.web_service.employee_management.execptions.customexceptions.EmailExistedException;
 import com.web_service.employee_management.features.account.Account;
 import com.web_service.employee_management.features.account.AccountRepository;
 import com.web_service.employee_management.features.department.Department;
@@ -9,7 +10,6 @@ import com.web_service.employee_management.features.role.Role;
 import com.web_service.employee_management.features.role.RoleRepository;
 import com.web_service.employee_management.features.salary.Salary;
 import com.web_service.employee_management.response.Response;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ public class EmployeeService {
 	public Object addEmployee(Employee employeeInfo) {
 		logger.info("Initialize adding employee function....");
 		if (accountRepository.existsByEmail(employeeInfo.getAccount().getEmail())) {
-			return new Response.Error("Email already existed", 400);
+			throw new EmailExistedException("Email already taken");
 		} else {
 			Employee newEmployee = new Employee(employeeInfo.getFullName(), employeeInfo.getBirthDay(),
 					employeeInfo.getPhoneNumber(), LocalDate.now());
@@ -74,9 +74,20 @@ public class EmployeeService {
 
 			// Set roles
 			Set<Role> roles = new HashSet<>();
-			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-			roles.add(userRole);
+			employeeInfo.getAccount().getRoles().forEach(role -> {
+				switch (role.getName().name()) {
+					case "admin":
+						Role adminRole = roleRepository.findByName(ERole.ADMIN)
+								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+						roles.add(adminRole);
+
+						break;
+					default:
+						Role userRole = roleRepository.findByName(ERole.USER)
+								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+						roles.add(userRole);
+				}
+			});
 			newEmployee.getAccount().setRoles(roles);
 
 			// Update department employees
@@ -91,7 +102,7 @@ public class EmployeeService {
 
 	public Object updateEmployee(Long id, Employee updateInfo) {
 		if (accountRepository.existsByEmail(updateInfo.getAccount().getEmail())) {
-			return new Response.Error("Email already existed", 400);
+			throw new EmailExistedException("Email already taken");
 		} else {
 			Employee original = repository.getReferenceById(id);
 
