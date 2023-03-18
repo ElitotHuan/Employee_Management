@@ -2,23 +2,24 @@ package com.web_service.employee_management.config;
 
 import com.web_service.employee_management.security.AuthEntryPointJwt;
 import com.web_service.employee_management.security.AuthTokenFilter;
-import com.web_service.employee_management.security.userdetails.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
+@EnableGlobalMethodSecurity(
+        // securedEnabled = true,
+        // jsr250Enabled = true,
+        prePostEnabled = true)
 public class WebSecurityConfig {
 
     private static final String[] AUTH_WHITELIST = {
@@ -26,19 +27,22 @@ public class WebSecurityConfig {
             "/v2/api-docs", "/swagger-resources", "/swagger-resources/**", "/configuration/ui",
             "/configuration/security", "/swagger-ui.html", "/webjars/**"};
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
+    private UserDetailsService userDetailsService;
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+    public WebSecurityConfig(UserDetailsService userDetailsService){
+        this.userDetailsService = userDetailsService;
     }
+
+//    @Bean
+//    public DaoAuthenticationProvider authenticationProvider() {
+//        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+//        authProvider.setUserDetailsService(userDetailsService);
+//        authProvider.setPasswordEncoder(passwordEncoder());
+//        return authProvider;
+//    }
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -51,19 +55,34 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
-                .antMatchers("/api/auth/**").permitAll().antMatchers(AUTH_WHITELIST).permitAll().anyRequest()
-                .authenticated();
 
-        http.authenticationProvider(authenticationProvider());
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        // Enable CORS and disable CSRF
+        http.cors().and().csrf().disable();
+
+        // Set session management to stateless
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and();
+
+        // Set permissions on endpoints
+        http.authorizeRequests()
+                //Public endpoints
+                .antMatchers("/api/auth/**").permitAll()
+                .antMatchers(AUTH_WHITELIST).permitAll()
+                // Private endpoints
+                .anyRequest().authenticated();
+
+//      http.authenticationProvider(authenticationProvider());
+
+        // Add JWT token filter
+//        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
