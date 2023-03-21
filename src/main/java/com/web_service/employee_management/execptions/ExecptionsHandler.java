@@ -3,17 +3,14 @@ package com.web_service.employee_management.execptions;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.web_service.employee_management.execptions.customexceptions.EmailExistedException;
 import com.web_service.employee_management.execptions.customexceptions.ExpiredException;
+import com.web_service.employee_management.execptions.customexceptions.LoginException;
 import com.web_service.employee_management.execptions.customexceptions.RefreshTokenException;
 import com.web_service.employee_management.response.Response;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
@@ -25,6 +22,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,10 +77,17 @@ public class ExecptionsHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new Response.Error(ex.getMessage(), HttpStatus.BAD_REQUEST.value()));
     }
 
+    //Customzie Exception
     @ExceptionHandler(EmailExistedException.class)
     protected ResponseEntity<Object> handleUserExistedException(EmailExistedException ex) {
         logger.error(ex.getMessage());
         return buildResponseEntity(new Response.Error("Email already existed", HttpStatus.CONFLICT.value()));
+    }
+
+    @ExceptionHandler(LoginException.class)
+    protected ResponseEntity<Object> handleUserExistedException(LoginException ex) {
+        logger.error(ex.getMessage());
+        return buildResponseEntity(new Response.Error(ex.getMessage(), HttpStatus.CONFLICT.value()));
     }
 
     @ExceptionHandler(ExpiredException.class)
@@ -91,53 +96,32 @@ public class ExecptionsHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new Response.Error(ex.getMessage(), HttpStatus.CONFLICT.value()));
     }
 
-    @ExceptionHandler(AuthenticationException.class )
-    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex) {
+//    @ExceptionHandler(AuthenticationException.class)
+//    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex) {
+//        logger.error(ex.getMessage());
+//        return buildResponseEntity(new Response.Error("Invalid usermane or password", HttpStatus.FORBIDDEN.value()));
+//    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    protected Object handleRolesAuthorizationException(AccessDeniedException ex) {
         logger.error(ex.getMessage());
-        return buildResponseEntity(new Response.Error("Authentication failed at controller advice", HttpStatus.UNAUTHORIZED.value()));
+        return new Response.Error("Forbidden Access!", HttpStatus.FORBIDDEN.value());
     }
 
-    //JWT exceptions
-    @ExceptionHandler(MalformedJwtException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Object handleMalformedJwtException(MalformedJwtException ex) {
-        logger.error(ex.getMessage());
-        return new Response.Error("Access denied!", HttpStatus.UNAUTHORIZED.value());
-    }
-
-    @ExceptionHandler(UnsupportedJwtException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Object handleUnsupportedJwtException(UnsupportedJwtException ex) {
-        logger.error(ex.getMessage());
-        return new Response.Error("Access denied!", HttpStatus.UNAUTHORIZED.value());
-    }
 
     @ExceptionHandler(SignatureException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Object handleSignatureException(SignatureException ex) {
+    protected Object handleSignatureException(SignatureException ex) {
         logger.error(ex.getMessage());
         return new Response.Error("Access denied!", HttpStatus.UNAUTHORIZED.value());
     }
 
-    @ExceptionHandler(ExpiredJwtException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Object handleExpiredJwtException(ExpiredJwtException ex) {
-        logger.error("JWT expired at " + ex.getClaims().getExpiration());
-        return new Response.Error("Access denied!", HttpStatus.UNAUTHORIZED.value());
-    }
-
-//    @ExceptionHandler(RolesAuthorizationException.class)
-//    @ResponseStatus(HttpStatus.FORBIDDEN)
-//    protected ErrorRespone handleRolesAuthorizationException(RolesAuthorizationException ex) {
-//        logger.error(ex.getMessage());
-//        return new ErrorRespone("Forbidden Access!", HttpStatus.FORBIDDEN.value());
-//    }
-//
     @ExceptionHandler(RefreshTokenException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Object handleRefreshTokenException(RefreshTokenException ex) {
         logger.error(ex.getMessage());
-        return new Response.Error("Unauthorized!", HttpStatus.FORBIDDEN.value());
+        return new Response.Error("Unauthorized!", HttpStatus.BAD_REQUEST.value());
     }
 
     private ResponseEntity<Object> buildResponseEntity(Response.Error errorRespone) {

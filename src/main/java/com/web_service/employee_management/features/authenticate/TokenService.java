@@ -1,8 +1,11 @@
 package com.web_service.employee_management.features.authenticate;
 
 import com.web_service.employee_management.execptions.customexceptions.ExpiredException;
+import com.web_service.employee_management.execptions.customexceptions.RefreshTokenException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,7 @@ import java.util.UUID;
 
 @Service
 public class TokenService {
+    private static final Logger logger = LoggerFactory.getLogger(TokenService.class);
 
     @Autowired
     TokenRepository repository;
@@ -31,13 +35,18 @@ public class TokenService {
 
     public TokenJWT updateToken(String refreshToken) {
         TokenJWT token = repository.findByRefreshToken(refreshToken);
+
+        if (token == null) {
+            throw new RefreshTokenException("Token doesn't exist");
+        }
+
         if (!token.getExpDate().before(new Date())) {
             String accessToken = this.generate(token);
             token.setAccessToken(accessToken);
             this.saveToken(token);
             return token;
         } else {
-            throw  new ExpiredException("Refresh token was expired. Please make a new signin request");
+            throw new ExpiredException("Refresh token was expired. Please make a new signin request");
         }
     }
 
@@ -56,6 +65,7 @@ public class TokenService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("Employee-id", token.getAccount().getEmployee().getId());
         claims.put("Email", token.getAccount().getEmail());
+        claims.put("Roles", token.getAccount().getRoles().toString());
 
         // Create jwt token
         return Jwts.builder().setClaims(claims).setIssuedAt(new Date(System.currentTimeMillis()))
