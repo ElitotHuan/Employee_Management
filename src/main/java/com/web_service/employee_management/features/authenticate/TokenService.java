@@ -65,7 +65,7 @@ public class TokenService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("Employee-id", token.getAccount().getEmployee().getId());
         claims.put("Email", token.getAccount().getEmail());
-        claims.put("Roles", token.getAccount().getRoles());
+        claims.put("Roles", token.getAccount().getRoles().toString());
 
         // Create jwt token
         return Jwts.builder().setClaims(claims).setIssuedAt(new Date(System.currentTimeMillis()))

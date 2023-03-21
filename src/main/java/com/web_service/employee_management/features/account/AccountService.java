@@ -29,12 +29,12 @@ public class AccountService {
     }
 
     public Account signin(Account.LoginRequest loginRequest) {
-        UsernamePasswordAuthenticationToken user = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
-        Authentication authentication = authenticationManager.authenticate(user);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User user1  = (User) authentication.getPrincipal();
-        Account account = accountRepository.findByEmail(user1.getUsername());
+        User user = (User) authentication.getPrincipal();
+        Account account = accountRepository.findByEmail(user.getUsername());
 
         if (!account.getExpDate().isBefore(LocalDate.now())) {
             return account;

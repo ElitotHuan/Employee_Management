@@ -65,21 +65,16 @@ public class EmployeeService {
             newEmployee.setSalary(new Salary(newEmployee, employeeInfo.getSalary().getSalary(), LocalDate.now(),
                     LocalDate.now().plusYears(3)));
 
-            // Set Account
-            newEmployee.setAccount(new Account(newEmployee, employeeInfo.getAccount().getEmail(),
-                    encoder.encode(employeeInfo.getAccount().getPassword()), LocalDate.now().plusYears(3), null));
-
-            // Set job and department
-            newEmployee.setJob(employeeInfo.getJob());
-            newEmployee.setDepartment(d);
-
-            // Set roles
+            // Set Account and roles
+            Account account = new Account(newEmployee, employeeInfo.getAccount().getEmail(),
+                    encoder.encode(employeeInfo.getAccount().getPassword()), LocalDate.now().plusYears(3), null);
             Set<Role> roles = new HashSet<>();
             employeeInfo.getAccount().getRoles().forEach(role -> {
                 switch (role.getName().name()) {
-                    case "admin":
+                    case "ADMIN":
                         Role adminRole = roleRepository.findByName(ERole.ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+
                         roles.add(adminRole);
 
                         break;
@@ -89,7 +84,12 @@ public class EmployeeService {
                         roles.add(userRole);
                 }
             });
-            newEmployee.getAccount().setRoles(roles);
+            account.setRoles(roles);
+            newEmployee.setAccount(account);
+
+            // Set job and department
+            newEmployee.setJob(employeeInfo.getJob());
+            newEmployee.setDepartment(d);
 
             // Update department employees
             d.setNumberOfEmployees(d.getNumberOfEmployees() + 1);
